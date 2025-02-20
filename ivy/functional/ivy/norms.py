@@ -6,7 +6,7 @@ from typing import List, Union, Optional
 import ivy
 from ivy.func_wrapper import (
     inputs_to_ivy_arrays,
-    integer_array_to_float,
+    integer_arrays_to_float,
 )
 
 
@@ -15,7 +15,7 @@ from ivy.func_wrapper import (
 
 
 @inputs_to_ivy_arrays
-@integer_array_to_float
+@integer_arrays_to_float
 def layer_norm(
     x: Union[ivy.Array, ivy.NativeArray],
     normalized_idxs: List[int],
@@ -127,5 +127,7 @@ def layer_norm(
     """
     mean = ivy.mean(x, axis=normalized_idxs, keepdims=True)
     var = ivy.var(x, axis=normalized_idxs, keepdims=True)
-    x = ivy.divide(ivy.add(ivy.negative(mean), x), ivy.stable_pow(var, 0.5, epsilon))
+    x = ivy.divide(
+        ivy.add(ivy.negative(mean), x), ivy.stable_pow(var, 0.5, min_base=epsilon)
+    )
     return ivy.add(ivy.multiply(ivy.multiply(x, new_std), scale), offset, out=out)
